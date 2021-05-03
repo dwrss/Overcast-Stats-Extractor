@@ -44,17 +44,19 @@ parser.add_argument(
     default=60,
     help="The path at which to cache the Overcast data. Defaults to '/tmp/'",
 )
-
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s - %(message)s",
-    level=logging.INFO,
-    datefmt="%Y-%m-%d %H:%M:%S",
+parser.add_argument(
+    "--verbose", action="store_true", help="Prints extra debugging information"
 )
-logger = logging.getLogger(__name__)
 
 
 def main():
     args = parser.parse_args()
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s - %(message)s",
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logger = logging.getLogger(__name__)
     if not args.force_cached and not (args.email or args.password):
         if args.email and not args.password:
             logger.warning("A password must be supplied")
