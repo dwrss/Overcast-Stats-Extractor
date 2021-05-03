@@ -1,43 +1,8 @@
 import collections
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Optional
 
-
-@dataclass(frozen=True)
-class Episode:
-    title: str
-    is_deleted: bool
-    is_started: bool
-    was_played: bool
-    last_modified: datetime
-
-
-@dataclass()
-class Podcast:
-    name: str
-    is_subscribed: bool
-    _episodes: set[Episode] = field(default_factory=set)
-    total_played: int = 0
-    total_unplayed: int = 0
-    total_started: int = 0
-    total_visible: int = 0
-
-    @property
-    def episodes(self):
-        return self._episodes
-
-    def add(self, episode: Episode):
-        self._episodes.add(episode)
-        if episode.was_played:
-            self.total_played += 1
-        else:
-            self.total_unplayed += 1
-        if not episode.is_deleted:
-            self.total_visible += 1
-        if episode.is_started:
-            self.total_started += 1
-
+from overcast_stats_extractor.model.podcast import Podcast
 
 Totals = collections.namedtuple("Totals", ["podcasts", "episodes"])
 PodcastTotals = collections.namedtuple("PodcastTotals", ["total", "subscribed"])
@@ -50,7 +15,9 @@ EpisodeTotals = collections.namedtuple(
 class PodcastStats:
     _podcasts: [Podcast] = field(default_factory=list)
     _podcast_totals = PodcastTotals(total=0, subscribed=0)
-    _episode_totals = EpisodeTotals(total=0, played=0, not_played=0, started=0, visible=0)
+    _episode_totals = EpisodeTotals(
+        total=0, played=0, not_played=0, started=0, visible=0
+    )
     _podcast_least_played_episodes: Optional[Podcast] = None
     _podcast_most_played_episodes: Optional[Podcast] = None
 

@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 import pickle
@@ -10,6 +11,13 @@ import requests
 import sys
 
 from requests import Response
+
+from overcast_stats_extractor.model.exceptions import (
+    AuthenticationFailed,
+    OpmlFetchError,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class Cache:
@@ -35,46 +43,44 @@ class Cache:
                 cache_stale = False
 
         if not cache_exists or cache_stale:
-            print("Cache stale fetching new data")
+            logging.info("Cache stale fetching new data")
             return None
         else:
-            print("Using data from cache")
+            logging.info("Using data from cache")
             with self.cache_path.open("r") as f:
                 return f.read()
 
     def write_cached_data(self, data: str):
-        with self, self.cache_path.open("w") as f:
+        with self.cache_path.open("w") as f:
             f.write(data)
 
 
 def fetch_fresh_data(settings) -> Response:
-    # load stored session, or re-authenticate
-    if os.path.exists(settings.session_path):
-        print("Found saved session. Restoring!")
-        session = pickle.loads(open(settings.session_path, "rb").read())
-    else:
-        print("No saved session. Authenticating!")
-        session = requests.Session()
-        response = session.post(
-            "https://overcast.fm/login",
-            data={"email": settings.email, "password": settings.password},
+    logging.info("Authenticating")
+    session = requests.Session()
+    response = session.post(
+        "https://overcast.fm/login",
+        data={"email": settings.email, "password": settings.password},
+    )
+
+    if response.status_code != 200:
+        logging.error("Authentication failed")
+        raise AuthenticationFailed(
+            status_code=response.status_code,
+            response_text=response.text,
+            response_headers=response.headers,
         )
 
-        if response.status_code != 200:
-            print("Authentication failed")
-            sys.exit(0)
-
-        print("Authenticated successfully. Saving session.")
-
-        with open(settings.session_path, "wb") as saved_session:
-            saved_session.write(pickle.dumps(session))
+    logging.info("Authenticated successfully.")
 
     # fetch the latest detailed OPML export from Overcast
-    print("Fetching latest OPML export from Overcast")
+    logging.info("Fetching latest OPML export from Overcast")
     response = session.get("https://overcast.fm/account/export_opml/extended")
     if response.status_code != 200:
-        print("Failed to fetch OPML. Exiting.")
-        print(response.text)
-        print(response.headers)
-        sys.exit(0)
+        logging.error("Failed to fetch OPML")
+        raise OpmlFetchError(
+            status_code=response.status_code,
+            response_text=response.text,
+            response_headers=response.headers,
+        )
     return response
