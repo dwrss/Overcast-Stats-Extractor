@@ -7,10 +7,10 @@ class NoCache(Exception):
         super().__init__(*args)
 
     def __repr__(self) -> str:
-        return "{class_name}({message})".format(class_name=self.__class__, message=self.message)
+        return "{class_full_name}({message})".format(class_full_name=self.__class__, message=self.message)
 
     def __str__(self) -> str:
-        return "{}".format(self.message)
+        return "{class_name}:{message}".format(class_name=self.__class__.__name__, message=self.message)
 
 
 class RequestError(Exception):

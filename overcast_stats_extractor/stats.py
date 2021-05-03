@@ -43,9 +43,9 @@ def extract_stats(opml_content: str, started_threshold: int) -> PodcastStats:
 def fetch_and_extract(settings: Settings) -> Optional[PodcastStats]:
     fetcher = Cache(cache_path=settings.cache_dir)
     data = None
-    if settings.cache_override != CacheOverride.FORCE_FRESH:
+    if settings.cache_override is not CacheOverride.FORCE_FRESH:
         data = fetcher.read_cached_data()
-    if not data and settings.cache_override != CacheOverride.FORCE_CACHED:
+    elif not data and settings.cache_override is not CacheOverride.FORCE_CACHED:
         response = fetch_fresh_data(settings)
         # Cache the last OPML file
         fetcher.write_cached_data(response.text)

@@ -43,7 +43,7 @@ class Cache:
                 cache_stale = False
 
         if not cache_exists or cache_stale:
-            logging.info("Cache stale fetching new data")
+            logging.info("Cached data stale")
             return None
         else:
             logging.info("Using data from cache")
