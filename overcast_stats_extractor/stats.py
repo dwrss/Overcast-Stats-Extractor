@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 from xml.etree import ElementTree
 from datetime import datetime
@@ -5,7 +6,13 @@ from dateutil.tz import UTC
 from dateutil.parser import parse as parse_dt
 
 
-from overcast_stats_extractor.model import Podcast, Episode, PodcastStats, Settings, CacheOverride
+from overcast_stats_extractor.model import (
+    Podcast,
+    Episode,
+    PodcastStats,
+    Settings,
+    CacheOverride,
+)
 from overcast_stats_extractor.model.exceptions import NoCache
 from overcast_stats_extractor.overcast_data import Cache, fetch_fresh_data
 
@@ -45,12 +52,15 @@ def fetch_and_extract(settings: Settings) -> Optional[PodcastStats]:
     data = None
     if settings.cache_override is not CacheOverride.FORCE_FRESH:
         data = fetcher.read_cached_data()
-    elif not data and settings.cache_override is not CacheOverride.FORCE_CACHED:
+
+    if not data and settings.cache_override is not CacheOverride.FORCE_CACHED:
+        logging.info("Fetching fresh data")
         response = fetch_fresh_data(settings)
         # Cache the last OPML file
         fetcher.write_cached_data(response.text)
         data = response.text
-    else:
+
+    if not data:
         raise NoCache()
 
     return extract_stats(data, settings.started_threshold)
