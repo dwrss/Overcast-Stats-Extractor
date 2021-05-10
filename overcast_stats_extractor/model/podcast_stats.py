@@ -52,7 +52,7 @@ class PodcastStats:
 
     def __str__(self) -> str:
         return f"""Total podcasts: {self._podcast_totals.total} ({self._podcast_totals.subscribed} subscribed)
-Total episodes: {self._episode_totals.total} ({self._episode_totals.not_played} unplayed, {self._episode_totals.started} started)
+Total episodes: {self._episode_totals.total} ({self._episode_totals.played} played, {self._episode_totals.not_played} unplayed, {self._episode_totals.started} started) 
 Total episodes visible on phone (i.e. eligible to download): {self._episode_totals.visible}
 Podcast with most played episodes: {self._podcast_most_played_episodes.name}
 Podcast with least played episodes: {self._podcast_least_played_episodes.name}
