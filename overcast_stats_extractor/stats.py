@@ -32,15 +32,12 @@ def extract_stats(opml_content: str, started_threshold: int) -> PodcastStats:
             is_subscribed=podcast.attrib.get("subscribed", "0") == "1",
         )
         for episode in list(podcast):
-            played = episode.attrib.get("played", "0") == "1"
-            user_activity_date_raw = episode.attrib.get("userUpdatedDate")
-            user_activity_date = parse_dt(user_activity_date_raw)
             episode_details = Episode(
                 title=episode.attrib["title"],
                 is_deleted=episode.attrib.get("userDeleted", "0") == "1",
                 is_started=int(episode.attrib.get("progress", "0")) > started_threshold,
-                was_played=played,
-                last_modified=user_activity_date,
+                was_played=episode.attrib.get("played", "0") == "1",
+                last_modified=parse_dt(episode.attrib.get("userUpdatedDate")),
             )
             curr_pod.add(episode_details)
         podcast_stats.add(curr_pod)
